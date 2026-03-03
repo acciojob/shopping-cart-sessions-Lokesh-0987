@@ -11,36 +11,37 @@ const productList = document.getElementById("product-list");
 const cartList = document.getElementById("cart-list");
 const clearCartBtn = document.getElementById("clear-cart-btn");
 
-// ALWAYS safely get cart
+// Get cart safely
 function getCart() {
-  const data = window.sessionStorage.getItem("cart");
-  return data ? JSON.parse(data) : [];
+  const stored = window.sessionStorage.getItem("cart");
+  return stored ? JSON.parse(stored) : [];
 }
 
-// ALWAYS safely save cart
+// Save cart safely
 function saveCart(cart) {
   window.sessionStorage.setItem("cart", JSON.stringify(cart));
 }
 
-// Render Products
+// Render products
 function renderProducts() {
   productList.innerHTML = "";
 
   products.forEach((product) => {
     const li = document.createElement("li");
 
-    const button = document.createElement("button");
-    button.textContent = "Add to Cart";
-    button.setAttribute("data-id", product.id);
+    const btn = document.createElement("button");
+    btn.textContent = "Add to Cart";
+    btn.className = "add-to-cart-btn";
+    btn.dataset.id = product.id;
 
-    li.append(`${product.name} - $${product.price} `);
-    li.appendChild(button);
+    li.append(`${product.name} - $${product.price}`);
+    li.appendChild(btn);
 
     productList.appendChild(li);
   });
 }
 
-// Render Cart
+// Render cart
 function renderCart() {
   cartList.innerHTML = "";
 
@@ -53,40 +54,40 @@ function renderCart() {
   });
 }
 
-// Add To Cart (CRITICAL FIX)
+// Add to cart
 function addToCart(productId) {
-  const cart = getCart(); // always read latest
+  const cart = getCart();
 
-  const product = products.find(p => p.id === productId);
+  const product = products.find((p) => p.id === productId);
 
   if (product) {
     cart.push({
       id: product.id,
       name: product.name,
-      price: product.price
-    }); // push clean object (important for deep equality)
+      price: product.price,
+    });
 
     saveCart(cart);
     renderCart();
   }
 }
 
-// Clear Cart
+// Clear cart
 function clearCart() {
-  window.sessionStorage.setItem("cart", JSON.stringify([]));
+  saveCart([]); // Important: do NOT removeItem
   renderCart();
 }
 
-// Event Listeners
+// Event delegation
 productList.addEventListener("click", function (e) {
-  if (e.target.tagName === "BUTTON") {
-    const id = parseInt(e.target.getAttribute("data-id"));
+  if (e.target.classList.contains("add-to-cart-btn")) {
+    const id = parseInt(e.target.dataset.id);
     addToCart(id);
   }
 });
 
 clearCartBtn.addEventListener("click", clearCart);
 
-// Initial Render (DO NOT TOUCH STORAGE HERE)
+// Initial render
 renderProducts();
 renderCart();
