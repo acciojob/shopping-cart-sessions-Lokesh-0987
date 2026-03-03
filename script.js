@@ -11,37 +11,51 @@ const productList = document.getElementById("product-list");
 const cartList = document.getElementById("cart-list");
 const clearCartBtn = document.getElementById("clear-cart-btn");
 
-// Get cart safely
+
+// SAFE getCart with exception handling
 function getCart() {
-  const stored = window.sessionStorage.getItem("cart");
-  return stored ? JSON.parse(stored) : [];
+  try {
+    const data = window.sessionStorage.getItem("cart");
+    if (!data) return [];
+    return JSON.parse(data);
+  } catch (error) {
+    // If corrupted or invalid JSON
+    window.sessionStorage.setItem("cart", JSON.stringify([]));
+    return [];
+  }
 }
 
-// Save cart safely
+
+// SAFE saveCart
 function saveCart(cart) {
-  window.sessionStorage.setItem("cart", JSON.stringify(cart));
+  try {
+    window.sessionStorage.setItem("cart", JSON.stringify(cart));
+  } catch (error) {
+    console.error("Session storage error:", error);
+  }
 }
 
-// Render products
+
+// Render Products
 function renderProducts() {
   productList.innerHTML = "";
 
   products.forEach((product) => {
     const li = document.createElement("li");
 
-    const btn = document.createElement("button");
-    btn.textContent = "Add to Cart";
-    btn.className = "add-to-cart-btn";
-    btn.dataset.id = product.id;
+    const button = document.createElement("button");
+    button.textContent = "Add to Cart";
+    button.dataset.id = product.id;
 
-    li.append(`${product.name} - $${product.price}`);
-    li.appendChild(btn);
+    li.append(`${product.name} - $${product.price} `);
+    li.appendChild(button);
 
     productList.appendChild(li);
   });
 }
 
-// Render cart
+
+// Render Cart
 function renderCart() {
   cartList.innerHTML = "";
 
@@ -54,33 +68,36 @@ function renderCart() {
   });
 }
 
-// Add to cart
+
+// Add to Cart (CRITICAL FIX)
 function addToCart(productId) {
-  const cart = getCart();
+  let cart = getCart();
 
   const product = products.find((p) => p.id === productId);
 
   if (product) {
-    cart.push({
+    cart = [...cart, {
       id: product.id,
       name: product.name,
-      price: product.price,
-    });
+      price: product.price
+    }];
 
     saveCart(cart);
     renderCart();
   }
 }
 
-// Clear cart
+
+// Clear Cart
 function clearCart() {
-  saveCart([]); // Important: do NOT removeItem
+  saveCart([]);
   renderCart();
 }
 
-// Event delegation
+
+// Event Listeners
 productList.addEventListener("click", function (e) {
-  if (e.target.classList.contains("add-to-cart-btn")) {
+  if (e.target.tagName === "BUTTON") {
     const id = parseInt(e.target.dataset.id);
     addToCart(id);
   }
@@ -88,6 +105,7 @@ productList.addEventListener("click", function (e) {
 
 clearCartBtn.addEventListener("click", clearCart);
 
-// Initial render
+
+// DO NOT RESET STORAGE HERE
 renderProducts();
 renderCart();
