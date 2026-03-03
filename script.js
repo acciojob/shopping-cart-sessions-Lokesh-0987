@@ -7,18 +7,17 @@ const products = [
   { id: 5, name: "Product 5", price: 50 },
 ];
 
-// DOM Elements
 const productList = document.getElementById("product-list");
 const cartList = document.getElementById("cart-list");
 const clearCartBtn = document.getElementById("clear-cart-btn");
 
-// Get cart from sessionStorage
+// Always return array
 function getCart() {
-  const storedCart = window.sessionStorage.getItem("cart");
-  return storedCart ? JSON.parse(storedCart) : [];
+  const cart = window.sessionStorage.getItem("cart");
+  return cart ? JSON.parse(cart) : [];
 }
 
-// Save cart to sessionStorage
+// Always store full updated cart
 function saveCart(cart) {
   window.sessionStorage.setItem("cart", JSON.stringify(cart));
 }
@@ -30,16 +29,10 @@ function renderProducts() {
   products.forEach((product) => {
     const li = document.createElement("li");
 
-    const span = document.createElement("span");
-    span.textContent = `${product.name} - $${product.price}`;
-
-    const button = document.createElement("button");
-    button.textContent = "Add to Cart";
-    button.classList.add("add-to-cart-btn");
-    button.dataset.id = product.id;
-
-    li.appendChild(span);
-    li.appendChild(button);
+    li.innerHTML = `
+      ${product.name} - $${product.price}
+      <button data-id="${product.id}">Add to Cart</button>
+    `;
 
     productList.appendChild(li);
   });
@@ -57,28 +50,28 @@ function renderCart() {
   });
 }
 
-// Add to Cart
+// FIXED addToCart
 function addToCart(productId) {
-  const cart = getCart();
+  let cart = getCart(); // Always fetch latest
 
-  const product = products.find((p) => p.id === productId);
+  const product = products.find(p => p.id === productId);
 
   if (product) {
-    cart.push(product);
-    saveCart(cart);
+    cart.push(product); // Append
+    saveCart(cart);     // Save full array
     renderCart();
   }
 }
 
 // Clear Cart
 function clearCart() {
-  saveCart([]); // Important for test case (do NOT remove item)
+  saveCart([]);   // Important: don't removeItem
   renderCart();
 }
 
 // Event Listeners
 productList.addEventListener("click", function (e) {
-  if (e.target.classList.contains("add-to-cart-btn")) {
+  if (e.target.tagName === "BUTTON") {
     const productId = parseInt(e.target.dataset.id);
     addToCart(productId);
   }
@@ -86,6 +79,6 @@ productList.addEventListener("click", function (e) {
 
 clearCartBtn.addEventListener("click", clearCart);
 
-// Initial Render
+// Initial Load
 renderProducts();
 renderCart();
