@@ -52,17 +52,23 @@ function renderCart() {
   });
 }
 
-// Add item to cart
 function addToCart(productId) {
+  // Get existing cart from sessionStorage
   let cart = sessionStorage.getItem("cart");
 
+  // Parse or initialize
   cart = cart ? JSON.parse(cart) : [];
 
+  // Find product
   const product = products.find(p => p.id === productId);
 
   if (product) {
-    cart.push(product);   // 🔥 Append, do NOT replace
+    // Append to existing cart
+    cart.push(product);
+
+    // Save updated cart
     sessionStorage.setItem("cart", JSON.stringify(cart));
+
     renderCart();
   }
 }
